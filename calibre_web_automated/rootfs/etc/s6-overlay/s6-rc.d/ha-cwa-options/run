@@ -1,0 +1,49 @@
+#!/usr/bin/with-contenv sh
+set -eu
+
+echo "[ha-cwa-options] Preparing Home Assistant storage and options"
+
+mkdir -p \
+  /share/calibre-web-automated/library \
+  /share/calibre-web-automated/ingest \
+  /share/calibre-web-automated/plugins
+
+python3 - <<'PY'
+import json
+import os
+from pathlib import Path
+
+options_path = Path("/data/options.json")
+try:
+    options = json.loads(options_path.read_text()) if options_path.exists() else {}
+except Exception as exc:
+    print(f"[ha-cwa-options] Could not read {options_path}: {exc}")
+    options = {}
+
+env = {
+    "TZ": str(options.get("timezone") or os.environ.get("TZ") or "Europe/Zurich"),
+    "NETWORK_SHARE_MODE": "true" if options.get("network_share_mode") else "false",
+    "TRUSTED_PROXY_COUNT": str(options.get("trusted_proxy_count") or os.environ.get("TRUSTED_PROXY_COUNT") or "1"),
+    "DISABLE_LIBRARY_AUTOMOUNT": "true" if options.get("disable_library_automount") else "false",
+}
+
+if options.get("force_polling"):
+    env["CWA_WATCH_MODE"] = "poll"
+elif "CWA_WATCH_MODE" in os.environ:
+    env["CWA_WATCH_MODE"] = os.environ["CWA_WATCH_MODE"]
+
+hardcover_token = str(options.get("hardcover_token") or "").strip()
+if hardcover_token:
+    env["HARDCOVER_TOKEN"] = hardcover_token
+
+env_dirs = [Path("/run/s6/container_environment"), Path("/var/run/s6/container_environment")]
+for env_dir in env_dirs:
+    if env_dir.exists():
+        for key, value in env.items():
+            (env_dir / key).write_text(value)
+
+print("[ha-cwa-options] Library path: /share/calibre-web-automated/library")
+print("[ha-cwa-options] Ingest path: /share/calibre-web-automated/ingest")
+PY
+
+chown -R abc:abc /share/calibre-web-automated 2>/dev/null || true

@@ -6,6 +6,7 @@ A small Home Assistant OS add-ons repository.
 
 | Add-on | Description |
 | --- | --- |
+| Calibre-Web Automated | Runs Calibre-Web Automated from the current public Docker image, with library and ingest folders in `/share/calibre-web-automated`. |
 | Dashy Latest | Runs Dashy from the current public `lissy93/dashy:latest` Docker image. |
 
 ## Installation
@@ -24,6 +25,11 @@ This repository follows the common Home Assistant add-ons repository layout:
 
 ```text
 repository.json
+calibre_web_automated/
+  config.yaml
+  Dockerfile
+  CHANGELOG.md
+  rootfs/
 dashy_latest/
   config.yaml
   Dockerfile
