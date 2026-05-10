@@ -1,0 +1,52 @@
+---
+name: Codex Terminal
+description: Web terminal with OpenAI Codex CLI, persistent auth, Home Assistant context, and ha_mcp integration.
+version: 0.1.0
+slug: codex_terminal
+url: https://github.com/openai/codex
+init: false
+
+arch:
+  - aarch64
+  - amd64
+
+ingress: true
+ingress_port: 7681
+panel_icon: mdi:code-braces
+panel_title: "Codex Terminal"
+panel_admin: true
+
+ports:
+  7681/tcp: null
+ports_description:
+  7681/tcp: Web terminal (not required for ingress)
+
+options:
+  auto_launch_codex: true
+  ha_smart_context: true
+  enable_ha_mcp: true
+  prefer_ha_mcp_app: true
+  persistent_apk_packages: []
+  persistent_pip_packages: []
+schema:
+  auto_launch_codex: bool?
+  ha_smart_context: bool?
+  enable_ha_mcp: bool?
+  prefer_ha_mcp_app: bool?
+  persistent_apk_packages:
+    - str
+  persistent_pip_packages:
+    - str
+
+map:
+  - config:rw
+
+hassio_api: true
+hassio_role: manager
+homeassistant_api: true
+auth_api: true
+
+startup: services
+boot: auto
+stage: experimental
+webui: http://[HOST]:[PORT:7681]/
