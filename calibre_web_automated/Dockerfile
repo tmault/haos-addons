@@ -16,4 +16,5 @@ RUN chmod 755 /etc/s6-overlay/s6-rc.d/ha-cwa-options/run \
       | xargs -r sed -i \
         -e 's|/calibre-library|/share/calibre-web-automated/library|g' \
         -e 's|/cwa-book-ingest|/share/calibre-web-automated/ingest|g' \
+    && sed -i 's|declare -a requiredDirs=("/config" "/app/calibre-web-automated" "/share/calibre-web-automated/library")|declare -a requiredDirs=("/config")|' /etc/s6-overlay/s6-rc.d/cwa-init/run \
     && python3 -c "import json; from pathlib import Path; path = Path('/app/calibre-web-automated/dirs.json'); data = json.loads(path.read_text()); data['ingest_folder'] = '/share/calibre-web-automated/ingest'; data['calibre_library_dir'] = '/share/calibre-web-automated/library'; path.write_text(json.dumps(data, indent=2) + '\n')"
