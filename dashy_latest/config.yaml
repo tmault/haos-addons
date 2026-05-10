@@ -1,0 +1,21 @@
+name: Dashy Latest
+version: 4.0.8
+slug: dashy_latest
+url: https://dashy.to/
+init: false
+description: Dashy wrapped for Home Assistant OS using the latest public Dashy Docker image.
+webui: http://[HOST]:[PORT:8080]
+stage: experimental
+startup: application
+boot: auto
+arch:
+  - aarch64
+  - amd64
+ports:
+  8080/tcp: 8080
+ports_description:
+  8080/tcp: Web interface
+map:
+  - addon_config:rw
+options: {}
+schema: {}

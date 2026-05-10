@@ -1,0 +1,10 @@
+#!/bin/sh
+set -eu
+
+mkdir -p /config
+
+if [ ! -f /config/conf.yml ]; then
+  cp /app/user-data/conf.yml /config/conf.yml
+fi
+
+exec "$@"
