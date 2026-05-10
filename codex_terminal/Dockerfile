@@ -3,6 +3,7 @@ FROM ${BUILD_FROM}
 
 RUN apk add --no-cache \
     bash \
+    bubblewrap \
     curl \
     nano \
     nodejs \
@@ -23,7 +24,7 @@ RUN apk add --no-cache \
     uv \
     yq
 
-RUN npm install -g @openai/codex@0.130.0 \
+RUN npm install -g @openai/codex@latest \
     && npm cache clean --force
 
 WORKDIR /config

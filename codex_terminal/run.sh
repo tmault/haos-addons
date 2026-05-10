@@ -88,13 +88,54 @@ ensure_codex_config() {
 
 install_tools() {
     bashio::log.info "Verifying required runtime tools..."
-    for cmd in bash curl jq tmux ttyd codex; do
+    for cmd in bash curl jq tmux ttyd npm codex; do
         if ! command -v "$cmd" >/dev/null 2>&1; then
             bashio::log.error "Required command not found: $cmd"
             exit 1
         fi
     done
     bashio::log.info "Required tools are available"
+}
+
+get_codex_cli_version() {
+    codex --version 2>/dev/null | awk '{print $NF}' || true
+}
+
+is_valid_codex_cli_target() {
+    [[ "$1" =~ ^[0-9A-Za-z][0-9A-Za-z._-]*$ ]]
+}
+
+apply_pinned_codex_cli_version() {
+    local version_file="/data/codex-cli-version"
+    local target current
+
+    if [ ! -s "$version_file" ]; then
+        return
+    fi
+
+    target="$(tr -d '[:space:]' < "$version_file")"
+    if [ -z "$target" ]; then
+        return
+    fi
+
+    if ! is_valid_codex_cli_target "$target"; then
+        bashio::log.warning "Ignoring invalid pinned Codex CLI version: $target"
+        return
+    fi
+
+    current="$(get_codex_cli_version)"
+    if [ "$current" = "$target" ]; then
+        bashio::log.info "Pinned Codex CLI version already installed: $target"
+        return
+    fi
+
+    bashio::log.info "Installing pinned Codex CLI version: $target"
+    if npm install -g "@openai/codex@$target"; then
+        npm cache clean --force >/dev/null 2>&1 || true
+        bashio::log.info "Codex CLI updated to $(get_codex_cli_version)"
+    else
+        bashio::log.warning "Failed to install pinned Codex CLI version: $target"
+    fi
 }
 
 setup_helpers() {
@@ -108,6 +149,18 @@ setup_helpers() {
         cp /opt/scripts/persist-install.sh /usr/local/bin/persist-install
         chmod 755 /usr/local/bin/persist-install
         bashio::log.info "Persist-install script installed successfully"
+    fi
+
+    if [ -f "/opt/scripts/codex-update.sh" ]; then
+        cp /opt/scripts/codex-update.sh /usr/local/bin/codex-update
+        chmod 755 /usr/local/bin/codex-update
+        bashio::log.info "Codex update script installed successfully"
+    fi
+
+    if [ -f "/opt/scripts/codex-update-scheduler.sh" ]; then
+        cp /opt/scripts/codex-update-scheduler.sh /usr/local/bin/codex-update-scheduler
+        chmod 755 /usr/local/bin/codex-update-scheduler
+        bashio::log.info "Codex update scheduler installed successfully"
     fi
 
     if [ -f "/opt/scripts/welcome.sh" ]; then
@@ -201,6 +254,31 @@ setup_ha_mcp() {
     fi
 }
 
+start_codex_update_scheduler() {
+    local enabled schedule_time schedule_days log_file
+
+    enabled=$(bashio::config 'codex_auto_update' 'true')
+    if [ "$enabled" != "true" ]; then
+        bashio::log.info "Codex CLI scheduled updates disabled"
+        return
+    fi
+
+    if ! command -v codex-update-scheduler >/dev/null 2>&1; then
+        bashio::log.warning "Codex update scheduler not found; scheduled updates disabled"
+        return
+    fi
+
+    schedule_time=$(bashio::config 'codex_auto_update_time' '03:30')
+    schedule_days=$(bashio::config 'codex_auto_update_days' 'daily')
+    log_file="/data/codex-update-scheduler.log"
+
+    bashio::log.info "Starting Codex CLI scheduled updates: ${schedule_days} at ${schedule_time}"
+    CODEX_UPDATE_SCHEDULE_TIME="$schedule_time" \
+    CODEX_UPDATE_SCHEDULE_DAYS="$schedule_days" \
+    CODEX_UPDATE_TARGET="latest" \
+    codex-update-scheduler >> "$log_file" 2>&1 &
+}
+
 get_codex_launch_command() {
     local auto_launch_codex welcome_prefix
     auto_launch_codex=$(bashio::config 'auto_launch_codex' 'true')
@@ -244,6 +322,7 @@ start_web_terminal() {
         --client-option enableReconnect=true \
         --client-option reconnect=10 \
         --client-option reconnectInterval=5 \
+        --client-option scrollback=50000 \
         --client-option "theme=${ttyd_theme}" \
         --client-option fontSize=14 \
         bash -c "$launch_command"
@@ -262,10 +341,12 @@ main() {
     run_health_check
     init_environment
     install_tools
+    apply_pinned_codex_cli_version
     setup_helpers
     install_persistent_packages
     generate_ha_context
     setup_ha_mcp
+    start_codex_update_scheduler
     start_web_terminal
 }
 

@@ -1,7 +1,7 @@
 ---
 name: Codex Terminal
 description: Web terminal with OpenAI Codex CLI, persistent auth, Home Assistant context, and ha_mcp integration.
-version: 0.1.0
+version: 0.1.2
 slug: codex_terminal
 url: https://github.com/openai/codex
 init: false
@@ -26,6 +26,9 @@ options:
   ha_smart_context: true
   enable_ha_mcp: true
   prefer_ha_mcp_app: true
+  codex_auto_update: true
+  codex_auto_update_time: "03:30"
+  codex_auto_update_days: daily
   persistent_apk_packages: []
   persistent_pip_packages: []
 schema:
@@ -33,6 +36,9 @@ schema:
   ha_smart_context: bool?
   enable_ha_mcp: bool?
   prefer_ha_mcp_app: bool?
+  codex_auto_update: bool?
+  codex_auto_update_time: str?
+  codex_auto_update_days: str?
   persistent_apk_packages:
     - str
   persistent_pip_packages:
