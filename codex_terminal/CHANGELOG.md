@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.3
+
+- Add optional public-key-only SSH access and pinned, checksum-verified Herdr 0.9.1.
+- Persist SSH host keys and share the web terminal Codex environment with remote sessions.
+- Keep SSH disabled and its host port unmapped by default.
+
 ## 0.1.2
 
 - Add configurable scheduled Codex CLI updates.

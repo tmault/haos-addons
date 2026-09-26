@@ -347,6 +347,8 @@ main() {
     generate_ha_context
     setup_ha_mcp
     start_codex_update_scheduler
+    source /opt/scripts/setup-remote-access.sh
+    setup_remote_access
     start_web_terminal
 }
 

@@ -7,6 +7,7 @@ RUN apk add --no-cache \
     curl \
     nano \
     nodejs \
+    openssh-server \
     npm \
     python3 \
     py3-pip \
@@ -31,6 +32,9 @@ WORKDIR /config
 
 COPY run.sh /run.sh
 COPY scripts/ /opt/scripts/
+ARG BUILD_ARCH
+RUN /bin/bash /opt/scripts/install-herdr.sh "${BUILD_ARCH}"
+
 RUN chmod 755 /run.sh \
     && chmod 755 /opt/scripts/*.sh
 
