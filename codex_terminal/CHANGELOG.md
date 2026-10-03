@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.4
+
+- Pass `--no-daemon` when launching new or resumed Codex sessions to fix startup failures inside Home Assistant OS.
+
 ## 0.1.3
 
 - Add optional public-key-only SSH access and pinned, checksum-verified Herdr 0.9.1.
