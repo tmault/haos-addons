@@ -177,7 +177,7 @@ setup_helpers() {
 
     cat > /usr/local/bin/codex-ha <<'SCRIPT'
 #!/bin/bash
-exec codex --cd /config --sandbox workspace-write --ask-for-approval on-request "$@"
+exec codex --no-daemon --cd /config --sandbox workspace-write --ask-for-approval on-request "$@"
 SCRIPT
     chmod 755 /usr/local/bin/codex-ha
 

@@ -33,8 +33,10 @@ Codex Terminal runs the OpenAI Codex CLI inside Home Assistant with a browser te
 Open the web UI from Home Assistant. By default the terminal attaches to a persistent `tmux` session and runs:
 
 ```bash
-codex --cd /config --sandbox workspace-write --ask-for-approval on-request
+codex --no-daemon --cd /config --sandbox workspace-write --ask-for-approval on-request
 ```
+
+The `codex-ha` launcher always passes `--no-daemon` so new and resumed sessions run without the shared background server, which fails inside Home Assistant OS.
 
 Run `codex login` in the terminal if Codex is not authenticated yet.
 
