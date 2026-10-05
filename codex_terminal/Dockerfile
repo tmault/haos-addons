@@ -7,6 +7,7 @@ RUN apk add --no-cache \
     curl \
     nano \
     nodejs \
+    openssh-client \
     openssh-server \
     npm \
     python3 \

@@ -5,12 +5,21 @@ set -euo pipefail
 export HOME=/data/home CODEX_HOME=/data/.codex XDG_CONFIG_HOME=/data/.config
 export XDG_CACHE_HOME=/data/.cache XDG_STATE_HOME=/data/.local/state XDG_DATA_HOME=/data/.local/share
 mkdir -p "$HOME" /config
-bashio::config.true() { [[ "$1" == ssh_enabled ]]; }
+bashio::config.true() { [[ "$1" == ssh_enabled && "${ssh_enabled:-true}" == true ]]; }
 bashio::log.info() { echo "$*"; }
 bashio::log.error() { echo "$*" >&2; }
 ssh-keygen -q -t ed25519 -N '' -f /tmp/client-key
-jq -n --arg key "$(cat /tmp/client-key.pub)" '{ssh_authorized_keys:[$key]}' > /data/options.json
 source /opt/scripts/setup-remote-access.sh
+ssh_enabled=false
+setup_remote_access
+[[ ! -e /data/ssh ]]
+ssh_enabled=true
+printf '{"ssh_authorized_keys":[]}\n' > /data/options.json
+if (setup_remote_access); then
+    echo 'SSH enabled without keys was accepted' >&2; exit 1
+fi
+[[ ! -e /run/codex-sshd.pid ]]
+jq -n --arg key "$(cat /tmp/client-key.pub)" '{ssh_authorized_keys:[$key]}' > /data/options.json
 setup_remote_access
 [[ "$(stat -c '%a' /run/codex-remote-env)" == 600 ]]
 [[ "$(stat -c '%a' /data/ssh/authorized_keys)" == 600 ]]

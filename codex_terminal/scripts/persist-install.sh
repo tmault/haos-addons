@@ -2,7 +2,7 @@
 
 set -e
 
-CONFIG_FILE="/data/persistent-packages.json"
+CONFIG_FILE="${PERSIST_INSTALL_CONFIG_FILE:-/data/persistent-packages.json}"
 
 ensure_config() {
     if [ ! -f "$CONFIG_FILE" ]; then
@@ -43,7 +43,7 @@ add_packages() {
     tmp=$(mktemp)
     jq --arg key "$key" --args '
         .[$key] = ((.[$key] + $ARGS.positional) | unique)
-    ' "$CONFIG_FILE" "$@" > "$tmp"
+    ' "$@" < "$CONFIG_FILE" > "$tmp"
     mv "$tmp" "$CONFIG_FILE"
 
     echo "Saved $kind packages. They will be installed now and on restart."

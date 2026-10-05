@@ -48,7 +48,7 @@ get_user_choice() {
     fi
 
     printf "Enter your choice [0-7] (default: %s): " "$default" >&2
-    read -r choice
+    read -r choice || return 1
     [ -z "$choice" ] && choice="$default"
     echo "$choice" | tr -d '[:space:]'
 }
@@ -91,7 +91,7 @@ launch_custom() {
     echo "Enter Codex arguments after the default workspace flags."
     echo "Example: exec --skip-git-repo-check \"summarize this Home Assistant config\""
     echo -n "> codex-ha "
-    read -r custom_args
+    read -r custom_args || exit 0
 
     if [ -z "$custom_args" ]; then
         launch_new
@@ -120,7 +120,7 @@ main() {
     while true; do
         show_banner
         show_menu
-        choice=$(get_user_choice)
+        choice=$(get_user_choice) || exit 0
 
         case "$choice" in
             0)
@@ -141,7 +141,7 @@ main() {
             *)
                 echo "Invalid choice: $choice"
                 printf "Press Enter to continue..." >&2
-                read -r
+                read -r || exit 0
                 ;;
         esac
     done

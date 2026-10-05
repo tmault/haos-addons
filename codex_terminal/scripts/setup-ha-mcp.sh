@@ -17,7 +17,7 @@ find_ha_mcp_slug() {
 }
 
 configure_ha_mcp_app_endpoint() {
-    local prefer_ha_mcp_app slug info state secret_path dns port endpoint
+    local prefer_ha_mcp_app slug info state secret_path dns endpoint
     prefer_ha_mcp_app=$(bashio::config 'prefer_ha_mcp_app' 'true')
 
     if [ "$prefer_ha_mcp_app" != "true" ]; then
@@ -34,7 +34,6 @@ configure_ha_mcp_app_endpoint() {
     state=$(echo "$info" | jq -r '.data.state // empty' 2>/dev/null)
     secret_path=$(echo "$info" | jq -r '.data.options.secret_path // empty' 2>/dev/null)
     dns=$(echo "$info" | jq -r '.data.dns[0] // empty' 2>/dev/null)
-    port=$(echo "$info" | jq -r '.data.network["9583/tcp"] // 9583' 2>/dev/null)
 
     if [ "$state" != "started" ]; then
         bashio::log.warning "Home Assistant MCP Server app is installed but not started; trying stdio fallback"
@@ -50,11 +49,9 @@ configure_ha_mcp_app_endpoint() {
         dns="${slug//_/-}.local.hass.io"
     fi
 
-    if [ -z "$port" ] || [ "$port" = "null" ]; then
-        port="9583"
-    fi
-
-    endpoint="http://${dns}:${port}${secret_path}"
+    # Supervisor's network value is the host-published port. Add-on DNS
+    # addresses the container directly, where ha_mcp listens on 9583.
+    endpoint="http://${dns}:9583${secret_path}"
 
     bashio::log.info "Configuring Codex MCP server from Home Assistant MCP Server app endpoint..."
     if codex mcp add home-assistant --url "$endpoint" >/tmp/codex-mcp-add.log 2>&1; then

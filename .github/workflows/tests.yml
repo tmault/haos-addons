@@ -1,0 +1,100 @@
+name: Add-on tests
+on:
+  pull_request:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  regressions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: sudo apt-get update && sudo apt-get install -y jq tmux
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+
+  terminal-browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: sudo apt-get update && sudo apt-get install -y ttyd tmux jq
+      - run: npm ci
+      - run: npx @e2e-dev/web install chromium --with-deps
+      - run: npm run test:e2e:codex
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: terminal-browser-results
+          path: .e2e/codex-terminal/
+          if-no-files-found: ignore
+
+  dashy-browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npx @e2e-dev/web install chromium --with-deps
+      - name: Prepare verified upstream Dashy revision
+        run: |
+          git init .e2e-runtime/dashy
+          git -C .e2e-runtime/dashy remote add origin https://github.com/Lissy93/dashy.git
+          git -C .e2e-runtime/dashy fetch --depth 1 origin 988b466dd585131096ae990aab4eb98175c5bd16
+          git -C .e2e-runtime/dashy checkout --detach FETCH_HEAD
+          npm --prefix .e2e-runtime/dashy install --no-audit --no-fund
+          npm --prefix .e2e-runtime/dashy run build
+      - run: npm run test:e2e:dashy
+        env:
+          DASHY_SOURCE_DIR: .e2e-runtime/dashy
+      - run: npm run test:e2e:dashy-auth
+        env:
+          DASHY_SOURCE_DIR: .e2e-runtime/dashy
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dashy-browser-results
+          path: |
+            .e2e/dashy/
+            .e2e/dashy-auth/
+          if-no-files-found: ignore
+
+  calibre-browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npx @e2e-dev/web install chromium --with-deps
+      - run: npm run test:e2e:calibre
+        env:
+          CALIBRE_DOCKER: '1'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: calibre-browser-results
+          path: .e2e/calibre/
+          if-no-files-found: ignore
+
+  terminal-ssh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash codex_terminal/tests/test-remote-access-container.sh

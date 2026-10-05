@@ -3,7 +3,7 @@ FROM ${DASHY_IMAGE}
 
 USER root
 
-ENV USER_DATA_DIR=../config \
+ENV USER_DATA_DIR=/config \
     IS_DOCKER=true \
     PORT=8080 \
     HOST=0.0.0.0

@@ -1,10 +1,13 @@
 #!/bin/sh
 set -eu
 
-mkdir -p /config
+config_dir=${USER_DATA_DIR:-/config}
+export USER_DATA_DIR="$config_dir"
+default_config=${DASHY_DEFAULT_CONFIG:-/app/user-data/conf.yml}
+mkdir -p "$config_dir"
 
-if [ ! -f /config/conf.yml ]; then
-  cp /app/user-data/conf.yml /config/conf.yml
+if [ ! -f "$config_dir/conf.yml" ]; then
+  cp "$default_config" "$config_dir/conf.yml"
 fi
 
 exec "$@"
