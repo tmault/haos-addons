@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- Exit the session picker when terminal input closes.
+- Use the MCP container port with internal add-on DNS, regardless of the published host port.
+- Install the SSH client for outgoing SSH and Git connections.
+- Preserve valid package configuration when adding persistent packages.
+- Generate Home Assistant context when optional fields or API responses are unavailable.
+- Add real terminal browser tests, MCP/EOF regressions, and a disposable SSH integration harness.
+
 ## 0.1.4
 
 - Pass `--no-daemon` when launching new or resumed Codex sessions to fix startup failures inside Home Assistant OS.

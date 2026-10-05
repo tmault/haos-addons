@@ -57,17 +57,17 @@ check_prerequisites() {
 
 section_system_info() {
     local core_info host_info ha_config
-    core_info=$(api_call "core/info")
-    host_info=$(api_call "host/info")
-    ha_config=$(ha_api_call "config")
+    core_info=$(api_call "core/info" || true)
+    host_info=$(api_call "host/info" || true)
+    ha_config=$(ha_api_call "config" || true)
 
     local ha_version machine ha_os hostname timezone location_name
-    ha_version=$(echo "$core_info" | jq -r '.data.version // empty' 2>/dev/null)
-    machine=$(echo "$core_info" | jq -r '.data.machine // empty' 2>/dev/null)
-    ha_os=$(echo "$host_info" | jq -r '.data.operating_system // empty' 2>/dev/null)
-    hostname=$(echo "$host_info" | jq -r '.data.hostname // empty' 2>/dev/null)
-    timezone=$(echo "$ha_config" | jq -r '.time_zone // empty' 2>/dev/null)
-    location_name=$(echo "$ha_config" | jq -r '.location_name // empty' 2>/dev/null)
+    ha_version=$(echo "$core_info" | jq -r '.data.version // empty' 2>/dev/null || true)
+    machine=$(echo "$core_info" | jq -r '.data.machine // empty' 2>/dev/null || true)
+    ha_os=$(echo "$host_info" | jq -r '.data.operating_system // empty' 2>/dev/null || true)
+    hostname=$(echo "$host_info" | jq -r '.data.hostname // empty' 2>/dev/null || true)
+    timezone=$(echo "$ha_config" | jq -r '.time_zone // empty' 2>/dev/null || true)
+    location_name=$(echo "$ha_config" | jq -r '.location_name // empty' 2>/dev/null || true)
 
     if [ -z "$ha_version" ]; then
         echo "Unable to retrieve system information."
@@ -80,13 +80,14 @@ section_system_info() {
     [ -n "$hostname" ] && echo "- Hostname: ${hostname}"
     [ -n "$location_name" ] && echo "- Location: ${location_name}"
     [ -n "$timezone" ] && echo "- Timezone: ${timezone}"
+    return 0
 }
 
 section_entity_summary() {
     local states total summary
-    states=$(ha_api_call "states")
+    states=$(ha_api_call "states" || true)
 
-    if [ -z "$states" ] || ! echo "$states" | jq -e '.' >/dev/null 2>&1; then
+    if [ -z "$states" ] || ! echo "$states" | jq -e 'type == "array" and all(.[]; .entity_id | type == "string")' >/dev/null 2>&1; then
         echo "Unable to retrieve entity states."
         return
     fi
@@ -127,9 +128,9 @@ section_entity_summary() {
 
 section_apps() {
     local apps_data
-    apps_data=$(api_call "addons")
+    apps_data=$(api_call "addons" || true)
 
-    if [ -z "$apps_data" ] || ! echo "$apps_data" | jq -e '.data.addons' >/dev/null 2>&1; then
+    if [ -z "$apps_data" ] || ! echo "$apps_data" | jq -e '.data.addons | type == "array"' >/dev/null 2>&1; then
         echo "Unable to retrieve app information."
         return
     fi
@@ -143,7 +144,7 @@ section_apps() {
 
 section_recent_errors() {
     local error_log
-    error_log=$(ha_api_call "error_log")
+    error_log=$(ha_api_call "error_log" || true)
 
     if [ -z "$error_log" ] || [ "$error_log" = "\"\"" ]; then
         echo "No recent errors."

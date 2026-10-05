@@ -49,6 +49,13 @@ codex_terminal/
 Each top-level add-on folder contains its own Home Assistant `config.yaml` and
 runtime files.
 
+## Testing
+
+Run `npm ci`, `npm run test:e2e:install`, and `npm test` for the host regression
+suite. Browser flow tests use tester-army/e2e against actual add-on applications.
+See [the testing guide](tests/README.md) for runtime setup, per-add-on commands,
+coverage, and verification limits.
+
 ## Credits
 
 The Dashy add-on here was inspired by Benoit Anastay's Home Assistant add-ons

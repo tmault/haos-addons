@@ -16,6 +16,8 @@ from pathlib import Path
 options_path = Path("/data/options.json")
 try:
     options = json.loads(options_path.read_text()) if options_path.exists() else {}
+    if not isinstance(options, dict):
+        raise ValueError("options must be a JSON object")
 except Exception as exc:
     print(f"[ha-cwa-options] Could not read {options_path}: {exc}")
     options = {}
@@ -23,7 +25,7 @@ except Exception as exc:
 env = {
     "TZ": str(options.get("timezone") or os.environ.get("TZ") or "Europe/Zurich"),
     "NETWORK_SHARE_MODE": "true" if options.get("network_share_mode") else "false",
-    "TRUSTED_PROXY_COUNT": str(options.get("trusted_proxy_count") or os.environ.get("TRUSTED_PROXY_COUNT") or "1"),
+    "TRUSTED_PROXY_COUNT": str(options.get("trusted_proxy_count", os.environ.get("TRUSTED_PROXY_COUNT") or "1")),
     "DISABLE_LIBRARY_AUTOMOUNT": "true" if options.get("disable_library_automount") else "false",
 }
 

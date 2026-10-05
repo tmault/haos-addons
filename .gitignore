@@ -1,1 +1,8 @@
 .DS_Store
+node_modules/
+.e2e/
+.e2e-runtime/
+test-results/
+__pycache__/
+*.pyc
+.e2e-*.log
